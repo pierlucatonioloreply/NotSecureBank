@@ -36,6 +36,12 @@ public class AdminAPI extends NotSecureBankAPI {
             return Response.status(400).entity(response).build();
         }
 
+        // check if the user is an admin
+        if (!isAdminUser(request)) {
+            String response = "{\"error\" : \"You do not have sufficient privileges to access this resource.\"}";
+            return Response.status(403).entity(response).build();
+        }
+
         // Convert request to JSON
         String username;
         String password1;
@@ -85,6 +91,12 @@ public class AdminAPI extends NotSecureBankAPI {
             return Response.status(400).entity(response).build();
         }
 
+        // check if the user is an admin
+        if (!isAdminUser(request)) {
+            String response = "{\"error\" : \"You do not have sufficient privileges to access this resource.\"}";
+            return Response.status(403).entity(response).build();
+        }
+
         String firstname;
         String lastname;
         String username;
@@ -127,6 +139,17 @@ public class AdminAPI extends NotSecureBankAPI {
             return Response.status(500).entity("{\"error\":\"" + error + "\"}").build();
 
         return Response.status(200).entity("{\"success\":\"Requested operation has completed successfully.\"}").build();
+    }
+
+    private boolean isAdminUser(HttpServletRequest request) {
+        User user = (User) request.getSession().getAttribute(ServletUtil.SESSION_ATTR_USER);
+        User loggedUserInfo = DBUtil.getUserInfo(user.username);
+        if (loggedUserInfo.role.equalsIgnoreCase("admin")){
+            return true;
+        }
+        else{
+            return false;
+        }
     }
 
 }
