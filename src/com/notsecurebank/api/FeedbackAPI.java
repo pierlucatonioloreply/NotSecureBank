@@ -17,6 +17,8 @@ import org.apache.wink.json4j.JSONObject;
 import com.notsecurebank.model.Feedback;
 import com.notsecurebank.util.OperationsUtil;
 import com.notsecurebank.util.ServletUtil;
+import org.owasp.esapi.ESAPI;
+import org.owasp.esapi.errors.EncodingException;
 
 @Path("/feedback")
 public class FeedbackAPI extends NotSecureBankAPI {
@@ -45,13 +47,16 @@ public class FeedbackAPI extends NotSecureBankAPI {
         String comments;
 
         try {
-            name = (String) myJson.get("name");
-            email = (String) myJson.get("email");
-            subject = (String) myJson.get("subject");
-            comments = (String) myJson.get("message");
+            name = ESAPI.encoder().encodeForHTML((String) myJson.get("name"));
+            email = ESAPI.encoder().encodeForHTML((String) myJson.get("email"));
+            subject = ESAPI.encoder().encodeForHTML((String) myJson.get("subject"));
+            comments = ESAPI.encoder().encodeForHTML((String) myJson.get("message"));
         } catch (JSONException e) {
             LOG.error(e.toString());
             return Response.status(400).entity("{\"Error\": \"Body does not contain all the correct attributes\"}").build();
+        } catch (EncodingException e) {
+            LOG.error(e.toString());
+            return Response.status(500).entity("{\"Error\": \"Failed to encode input data\"}").build();
         }
 
         String feedbackId = OperationsUtil.sendFeedback(name, email, subject, comments);
@@ -82,10 +87,18 @@ public class FeedbackAPI extends NotSecureBankAPI {
         LOG.info("getFeedback");
 
         Feedback feedbackDetails = ServletUtil.getFeedback(Long.parseLong(feedbackId));
-        String response = "";
-        response += "{\"name\":\"" + feedbackDetails.getName() + "\"," + "\n\"email\":\"" + feedbackDetails.getEmail() + "\"," + "\n\"subject\":\"" + feedbackDetails.getSubject() + "\"," + "\n\"message\":\"" + feedbackDetails.getMessage() + "\"}";
+        JSONObject responseJson = new JSONObject();
+        try {
+            responseJson.put("name", ESAPI.encoder().encodeForHTML(feedbackDetails.getName()));
+            responseJson.put("email", ESAPI.encoder().encodeForHTML(feedbackDetails.getEmail()));
+            responseJson.put("subject", ESAPI.encoder().encodeForHTML(feedbackDetails.getSubject()));
+            responseJson.put("message", ESAPI.encoder().encodeForHTML(feedbackDetails.getMessage()));
+        } catch (EncodingException | JSONException e) {
+            LOG.error(e.toString());
+            return Response.status(500).entity("{\"Error\": \"Failed to encode input data\"}").build();
+        }
 
-        return Response.status(200).entity(response).build();
+        return Response.status(200).entity(responseJson.toString()).build();
 
     }
 
