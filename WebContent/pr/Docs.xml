@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 
 <news>
-	<!-- If element isPublic is False, do not present publication to web users -->
+	<!-- If element isPublic is False,, do not present publication to web users -->
 	<publication>
 		<id>1</id>
 		<date>1/1/1970</date>
