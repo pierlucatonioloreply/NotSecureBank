@@ -12,11 +12,7 @@
     <td valign="top" colspan="3" class="bb">
 		<%		
 		java.lang.String content = request.getParameter("content");
-		if (content == null)
-			content = "default.htm";
-		else
-			content = request.getParameter("content");
-			content = "static/"+content;
+		content = "static/"+content;
 		%>
 		
 		<%  try { %>
